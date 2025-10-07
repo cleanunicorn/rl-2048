@@ -166,7 +166,7 @@ class Player:
     def __init__(self, network: SimpleNeuralNetwork):
         self.network = network
 
-    def play(self, env: Game2048Env, max_steps: int = 1000) -> int:
+    def play(self, env: Game2048Env, max_steps: int = 100) -> int:
         state = env.reset()
         total_reward = 0
         done = False
