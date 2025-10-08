@@ -10,4 +10,5 @@ dependencies = [
     "jupyter>=1.1.1",
     "matplotlib>=3.10.6",
     "numpy>=2.3.3",
+    "torch>=2.8.0",
 ]
