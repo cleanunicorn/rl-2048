@@ -37,17 +37,14 @@ class EvolutionaryOptimizer:
             # network_cpu = network.cpu()
             player = Player(network)
             env = Game2048Env()
-            total_score = 0
             best_score = 0
             best_tile = 0
             for _ in range(games_per_player):
                 game_result = player.play(env, max_steps=max_steps)
-                total_score += game_result.score
                 if game_result.score > best_score:
                     best_score = game_result.score
                 if game_result.max_tile > best_tile:
                     best_tile = game_result.max_tile
-            avg_score = total_score / games_per_player
             return (network, best_tile, best_score)
 
         results = Parallel(n_jobs=joblib.cpu_count(), prefer="threads")(delayed(eval_network)(net) for net in self.population)
