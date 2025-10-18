@@ -9,8 +9,12 @@ class Direction(Enum):
     DOWN = 3
 
 class Game2048Env:
-    def __init__(self):
+    def __init__(self, random_seed: int = None):
         self.grid_size = 4
+        if random_seed is not None:
+            self.rng = np.random.default_rng(random_seed)
+        else:
+            self.rng = np.random.default_rng()
         self.reset()
         
     def reset(self):
@@ -23,8 +27,8 @@ class Game2048Env:
     def spawn_tile(self):
         empty = list(zip(*np.where(self.board == 0)))
         if empty:
-            x, y = empty[np.random.randint(len(empty))]
-            self.board[x, y] = 2 if np.random.random() < 0.9 else 4
+            x, y = empty[self.rng.integers(low=0, high=len(empty), size=1)[0]]
+            self.board[x, y] = 2 if self.rng.random() < 0.9 else 4
         
     def step(self, actions: List[Direction]):
         direction = None

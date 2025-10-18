@@ -32,14 +32,13 @@ class EvolutionaryOptimizer:
             network = SimpleNeuralNetwork(hidden_layers=hidden_layers)
             self.population.append(network)
 
-    def evaluate(self, env: Game2048Env, games_per_player: int = 5, max_steps: int = 100) -> List[Tuple[SimpleNeuralNetwork, int, int]]:
-        def eval_network(network):
-            # network_cpu = network.cpu()
-            player = Player(network)
-            env = Game2048Env()
+    def evaluate(self, games_per_player: int = 5, max_steps: int = 100, base_random_seed: int = 42) -> List[Tuple[SimpleNeuralNetwork, int, int]]:
+        def eval_network(network, base_random_seed):
             best_score = 0
             best_tile = 0
-            for _ in range(games_per_player):
+            for game_index in range(games_per_player):
+                player = Player(network)
+                env = Game2048Env(random_seed=base_random_seed + game_index)
                 game_result = player.play(env, max_steps=max_steps)
                 if game_result.score > best_score:
                     best_score = game_result.score
@@ -47,7 +46,7 @@ class EvolutionaryOptimizer:
                     best_tile = game_result.max_tile
             return (network, best_tile, best_score)
 
-        results = Parallel(n_jobs=joblib.cpu_count(), prefer="threads")(delayed(eval_network)(net) for net in self.population)
+        results = Parallel(n_jobs=joblib.cpu_count() * 2, prefer="threads")(delayed(eval_network)(net, base_random_seed) for net in self.population)
 
         return results
 
@@ -80,8 +79,8 @@ class EvolutionaryOptimizer:
 
         self.population = new_population[:self.population_size]
 
-    def run_generation(self, env: Game2048Env, games_per_player: int = 5, max_steps: int = 1000) -> Tuple[List[SimpleNeuralNetwork], float, int]:
-        evaluated = self.evaluate(env, games_per_player, max_steps=max_steps)
+    def run_generation(self, games_per_player: int = 5, max_steps: int = 1000, base_random_seed: int = 42) -> Tuple[List[SimpleNeuralNetwork], float, int]:
+        evaluated = self.evaluate(games_per_player, max_steps=max_steps, base_random_seed=base_random_seed)
         avg_max_tile = sum(max_tile for _, max_tile, _ in evaluated) / len(evaluated)
         best_score = max(score for _, _, score in evaluated)
         
