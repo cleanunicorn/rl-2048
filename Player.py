@@ -5,11 +5,13 @@ import torch
 import numpy as np
 from typing import List
 
+
 @dataclass
 class GameResult:
     score: int
     max_tile: int
     moves: int
+
 
 class Player:
     def __init__(self, network: SimpleNeuralNetwork):
@@ -29,7 +31,7 @@ class Player:
             steps += 1
 
         return GameResult(score=total_reward, max_tile=np.max(state), moves=steps)
-    
+
     def next_move(self, state: np.ndarray) -> List[Direction]:
         self.network.eval()  # Set to evaluation mode
         with torch.no_grad():
