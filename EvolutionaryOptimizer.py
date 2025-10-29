@@ -6,8 +6,7 @@ from Game import Game2048Env
 from typing import List
 from typing import Tuple
 import random
-import numpy as np
-import numpy
+import copy
 
 
 class EvolutionaryOptimizer:
@@ -51,7 +50,7 @@ class EvolutionaryOptimizer:
                     best_tile = game_result.max_tile
             return (network, best_tile, sum(scores) / games_per_player)
 
-        results = Parallel(n_jobs=joblib.cpu_count() * 2, prefer="threads")(
+        results = Parallel(n_jobs=joblib.cpu_count())(
             delayed(eval_network)(net, base_random_seed) for net in self.population
         )
 
@@ -67,6 +66,7 @@ class EvolutionaryOptimizer:
         new_population = []
         # Keep elite networks
         for net, _, _ in elite:
+            net.age += 1
             new_population.append(net)
 
         # Create offspring by mutating elite networks
@@ -74,8 +74,9 @@ class EvolutionaryOptimizer:
             parent = random.choice(elite)[0]
 
             # Create a child by copying the parent's state
-            child = SimpleNeuralNetwork(hidden_layers=self.hidden_layers)
-            child.load_state_dict(parent.state_dict())
+            child = copy.deepcopy(parent)
+            child.age = 0
+            # child.load_state_dict(parent.state_dict())
 
             # Mutate the child
             child.mutate(self.mutation_rate, self.mutation_strength)
@@ -86,7 +87,7 @@ class EvolutionaryOptimizer:
             network = SimpleNeuralNetwork(hidden_layers=self.hidden_layers)
             new_population.append(network)
 
-        self.population = new_population[: self.population_size]
+        self.population = new_population
 
     def run_generation(
         self,
@@ -97,8 +98,11 @@ class EvolutionaryOptimizer:
         evaluated = self.evaluate(
             games_per_player, max_steps=max_steps, base_random_seed=base_random_seed
         )
-        avg_score = sum(avg_score_player for _, _, avg_score_player in evaluated) / len(evaluated)
-        best_score = max(score for _, _, score in evaluated)
+        elites = evaluated[: self.elite_size]
+        avg_score = sum(avg_score_player for _, _, avg_score_player in elites) / len(
+            elites
+        )
+        best_score = max(score for _, _, score in elites)
 
         self.select_and_breed(evaluated)
 

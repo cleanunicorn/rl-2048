@@ -48,7 +48,7 @@ class Game2048Env:
                 # Stop if invalid move
                 done = True
                 break
-        
+
         return self.board.copy(), reward, done, {"direction": direction}
 
     def move(self, direction):

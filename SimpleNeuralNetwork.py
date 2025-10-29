@@ -40,6 +40,7 @@ class SimpleNeuralNetwork(nn.Module):
         self.input_size = input_size
         self.hidden_layers = hidden_layers
         self.output_size = output_size
+        self.age = 0
 
         # Build layers using PyTorch modules
         layers = []
